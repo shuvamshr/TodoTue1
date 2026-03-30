@@ -7,48 +7,67 @@
 
 import SwiftUI
 
-
 struct TodoTask: Identifiable {
     var id: UUID = UUID()
-    
     var title: String = "Untitled"
     var description: String = "No Description Provided"
     var isCompleted: Bool = false
     var priority: Priority = .medium
-   
 }
-
 
 enum Priority: String, CaseIterable {
     case low = "Low Priority"
     case medium = "Medium Priority"
     case high = "High Priority"
-    case urgent = "Urgent Priority"
+    
+    var color: Color {
+        switch self {
+        case .low:
+            Color.green
+        case .medium:
+            Color.orange
+        case .high:
+            Color.red
+        }
+    }
 }
 
 
 struct RootView: View {
     
-    // var tasks: [String] = ["Do this", "Do that", "And that"]
-    
     @State private var tasks: [TodoTask] = [
-        TodoTask(title: "My First Task is something", description: "Some description about this task"),
-        TodoTask(title: "My Second Task", description: "Some description about this task"),
-        TodoTask(title: "My Third Task", description: "Some description about this task", isCompleted: true),
-        TodoTask()
+        TodoTask(
+            title: "Organise workspace",
+            description: "Clean desk and arrange files for better focus",
+            priority: .low
+        ),
+        TodoTask(
+            title: "Prepare presentation slides",
+            description: "Finalize content and visuals for tomorrow's meeting",
+            priority: .medium
+        ),
+        TodoTask(
+            title: "Submit assignment",
+            description: "Complete and upload before the deadline",
+            isCompleted: true,
+            priority: .high
+        ),
+        TodoTask(
+            title: "Read a few pages",
+            description: "Spend 15 minutes reading a book before bed",
+            priority: .low
+        )
     ]
     
     var body: some View {
-        
-        // for task in tasks { task.title, task.description, task.isCompleted }
+
         NavigationStack {
-            ScrollView {
+            List {
                 ForEach(tasks) { task in
                     TaskItemView(task: task)
                 }
-                
-            
             }
+            .listStyle(.plain)
             .navigationTitle("Things To-Do")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -62,7 +81,6 @@ struct RootView: View {
             }
         }
     }
-
 }
 
 struct NewTaskView: View {
@@ -77,8 +95,13 @@ struct NewTaskView: View {
     
     var body: some View {
         Form {
-            TextField("Enter Your Task Title", text: $title)
-            TextEditor(text: $description)
+            Section {
+                TextField("Task Title", text: $title)
+                    .bold()
+                TextEditor(text: $description)
+            } header: {
+                Text("Task Details")
+            }
             Picker("Select Prioirity", selection: $priority) {
                 ForEach(Priority.allCases, id: \.self) { priority in
                     Text(priority.rawValue)
@@ -86,7 +109,7 @@ struct NewTaskView: View {
                 }
             }
         }
-        .navigationTitle("New Task Form")
+        .navigationTitle("New Task")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -123,14 +146,12 @@ struct TaskItemView: View {
     
     var body: some View {
         
-        // (V)ertically, (H)orizontal, (Z)-Index
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
-                Button(task.priority.rawValue) {
-                    
-                }
-                .controlSize(.mini)
-                .buttonStyle(.borderedProminent)
+                Text(task.priority.rawValue)
+                    .font(.caption2)
+                    .fontWeight(.heavy)
+                    .foregroundStyle(task.priority.color)
                 Text(task.title)
                     .font(.headline)
                     .foregroundStyle(Color.primary)
@@ -138,26 +159,22 @@ struct TaskItemView: View {
                     .font(.subheadline)
                     .foregroundStyle(Color.secondary)
             }
+            
             Spacer()
             
             if task.isCompleted {
-                
                 Image(systemName: "checkmark.circle.fill")
                     .font(.title)
                     .foregroundStyle(Color.green)
-                
             } else {
-                
                 Image(systemName: "circle")
                     .font(.title)
-                    .foregroundStyle(Color.secondary)
-                
+                    .foregroundStyle(Color.secondary.opacity(0.5))
             }
         }
-        .padding()
+        .padding(.vertical, 4)
     }
 }
-
 
 #Preview {
     RootView()
